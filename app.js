@@ -1,22 +1,47 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var methodOverride = require('method-override');
-var mongoose = require('mongoose');
+var express = require("express"),
+    app = express(),
+    bodyParser = require("body-parser"),
+    methodOverride = require("method-override"),
+    mongoose = require("mongoose");
 
-var app = express();
+mongoose.connect('mongodb://localhost/tvshows',function(err,res){
+    if(err){
+        console.log('ERROR: connecting to Database. ' + err);
+    }
+    console.log('Connected to Database');
+});
 
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(methodOverride());
 
-//Example Route
+
+var models = require('./models/tvshow')(app, mongoose);
+var TVShowCtrl = require('./controllers/tvshows');
+
 var router = express.Router();
-router.get('/',function(req,res,next){
-    res.send("Hello World!");
+
+router.get('/', function(req,res){
+    res.send("Hello World");
 });
 
 app.use(router);
 
-app.listen(3000,function(){
-    console.log("Node server running on http://localhost:3000");
+var TVShowCtrl = require('./controllers/tvshows');
+
+var tvshows = express.Router();
+
+tvshows.route('/tvshows')
+    .get(TVShowCtrl.findAllTVShows)
+    .post(TVShowCtrl.addTVShow);
+
+tvshows.route('/tvshows/:id')
+    .get(TVShowCtrl.findById)
+    .put(TVShowCtrl.updateTVShow)
+    .delete(TVShowCtrl.deleteTVShow);
+
+app.use('/api', tvshows);
+
+app.listen(8085, function(){
+    console.log("Servidor node corriendo en http://localhost:8085");
 });
